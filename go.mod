@@ -1,4 +1,4 @@
-module go-ffmpegbin
+module github.com/phanletrunghieu/go-ffmpegbin
 
 go 1.13
 
