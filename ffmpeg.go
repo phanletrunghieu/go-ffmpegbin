@@ -30,6 +30,8 @@ type FFmpeg struct {
 
 	movflags string
 	preset   string
+
+	removeMetadata bool
 }
 
 func NewFFmpeg() *FFmpeg {
@@ -108,6 +110,11 @@ func (f *FFmpeg) Preset(preset string) *FFmpeg {
 	return f
 }
 
+func (f *FFmpeg) RemoveMetadata(removeMetadata bool) *FFmpeg {
+	f.removeMetadata = removeMetadata
+	return f
+}
+
 // Ex: cat VID_20191112_093257.mp4 | ffmpeg -i - -ss 10 -t 6 -vcodec libx264 -acodec aac -b:a 10000 -b:v 10000 -movflags frag_keyframe+empty_moov+faststart -f mp4 pipe: > bbbbb.mp4
 func (f *FFmpeg) Run() error {
 	defer f.BinWrapper.Reset()
@@ -141,6 +148,9 @@ func (f *FFmpeg) Run() error {
 	}
 	if f.duration > 0 {
 		f.Arg("-t", fmt.Sprintf("%d", f.duration))
+	}
+	if f.removeMetadata {
+		f.Arg("-map_metadata", "-1")
 	}
 	if f.format != "" {
 		f.Arg("-f", f.format)

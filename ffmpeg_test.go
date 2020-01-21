@@ -38,6 +38,7 @@ func TestEncodeVideoBuffer(t *testing.T) {
 		Duration(5).
 		Format("mp4").
 		Movflags("+faststart").
+		RemoveMetadata(true).
 		Run()
 	assert.Nil(t, err)
 }
