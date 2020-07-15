@@ -26,6 +26,7 @@ type FFmpeg struct {
 	audioCodec string
 
 	seek     int
+	vframes  int
 	duration int
 
 	movflags string
@@ -96,6 +97,11 @@ func (f *FFmpeg) Seek(seek int) *FFmpeg {
 	return f
 }
 
+func (f *FFmpeg) VFrames(vframes int) *FFmpeg {
+	f.vframes = vframes
+	return f
+}
+
 func (f *FFmpeg) Duration(duration int) *FFmpeg {
 	f.duration = duration
 	return f
@@ -151,6 +157,9 @@ func (f *FFmpeg) Run() error {
 	}
 	if f.seek >= 0 {
 		f.Arg("-ss", fmt.Sprintf("%d", f.seek))
+	}
+	if f.vframes >= 0 {
+		f.Arg("-vframes", fmt.Sprintf("%d", f.vframes))
 	}
 	if f.duration > 0 {
 		f.Arg("-t", fmt.Sprintf("%d", f.duration))

@@ -43,3 +43,21 @@ func TestEncodeVideoBuffer(t *testing.T) {
 		Run()
 	assert.Nil(t, err)
 }
+
+func TestExtractThumbnail(t *testing.T) {
+	fout, err := os.Create("testdata/thumbnail.jpg")
+	assert.Nil(t, err)
+	defer fout.Close()
+
+	fin, err := os.Open("testdata/input.mp4")
+	assert.Nil(t, err)
+
+	ffmpeg := NewFFmpeg()
+	err = ffmpeg.Input(fin).
+		Output(fout).
+		Seek(1).
+		Format("singlejpeg").
+		VFrames(1).
+		Run()
+	assert.Nil(t, err)
+}
