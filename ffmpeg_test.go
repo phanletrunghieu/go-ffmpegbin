@@ -61,3 +61,25 @@ func TestExtractThumbnail(t *testing.T) {
 		Run()
 	assert.Nil(t, err)
 }
+
+func TestExtractGIFThumbnail(t *testing.T) {
+	fout, err := os.Create("testdata/thumbnail.gif")
+	assert.Nil(t, err)
+	defer fout.Close()
+
+	fin, err := os.Open("testdata/input.mp4")
+	assert.Nil(t, err)
+	defer fin.Close()
+
+	ffmpeg := NewFFmpeg()
+	err = ffmpeg.Input(fin).
+		Output(fout).
+		Seek(0).
+		Duration(2).
+		VFrames(-1).
+		Rate(10).
+		Loop(0).
+		Format("gif").
+		Run()
+	assert.Nil(t, err)
+}

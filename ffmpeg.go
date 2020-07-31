@@ -28,6 +28,8 @@ type FFmpeg struct {
 	seek     int
 	vframes  int
 	duration int
+	rate     int
+	loop     int
 
 	movflags string
 	preset   string
@@ -107,6 +109,16 @@ func (f *FFmpeg) Duration(duration int) *FFmpeg {
 	return f
 }
 
+func (f *FFmpeg) Rate(rate int) *FFmpeg {
+	f.rate = rate
+	return f
+}
+
+func (f *FFmpeg) Loop(loop int) *FFmpeg {
+	f.loop = loop
+	return f
+}
+
 func (f *FFmpeg) Movflags(movflags string) *FFmpeg {
 	f.movflags = movflags
 	return f
@@ -163,6 +175,12 @@ func (f *FFmpeg) Run() error {
 	}
 	if f.duration > 0 {
 		f.Arg("-t", fmt.Sprintf("%d", f.duration))
+	}
+	if f.rate > 0 {
+		f.Arg("-r", fmt.Sprintf("%d", f.rate))
+	}
+	if f.loop > 0 {
+		f.Arg("-loop", fmt.Sprintf("%d", f.loop))
 	}
 	if f.removeMetadata {
 		f.Arg("-map_metadata", "-1")
