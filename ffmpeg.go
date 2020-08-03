@@ -26,10 +26,18 @@ type FFmpeg struct {
 	audioCodec string
 
 	seek     int
-	vframes  int
+	vframes  *int
 	duration int
 	rate     int
 	loop     int
+
+	// webp
+	lossless         bool
+	compressionLevel *int
+	qscale           *int
+
+	filterComplex string
+	mapping       string
 
 	movflags string
 	preset   string
@@ -100,7 +108,7 @@ func (f *FFmpeg) Seek(seek int) *FFmpeg {
 }
 
 func (f *FFmpeg) VFrames(vframes int) *FFmpeg {
-	f.vframes = vframes
+	f.vframes = &vframes
 	return f
 }
 
@@ -116,6 +124,31 @@ func (f *FFmpeg) Rate(rate int) *FFmpeg {
 
 func (f *FFmpeg) Loop(loop int) *FFmpeg {
 	f.loop = loop
+	return f
+}
+
+func (f *FFmpeg) Lossless(lossless bool) *FFmpeg {
+	f.lossless = lossless
+	return f
+}
+
+func (f *FFmpeg) CompressionLevel(compressionLevel int) *FFmpeg {
+	f.compressionLevel = &compressionLevel
+	return f
+}
+
+func (f *FFmpeg) QScale(qscale int) *FFmpeg {
+	f.qscale = &qscale
+	return f
+}
+
+func (f *FFmpeg) FilterComplex(filterComplex string) *FFmpeg {
+	f.filterComplex = filterComplex
+	return f
+}
+
+func (f *FFmpeg) Map(m string) *FFmpeg {
+	f.mapping = m
 	return f
 }
 
@@ -143,6 +176,13 @@ func (f *FFmpeg) NoVideo(noVideo bool) *FFmpeg {
 func (f *FFmpeg) Run() error {
 	defer f.BinWrapper.Reset()
 
+	if f.seek >= 0 {
+		f.Arg("-ss", fmt.Sprintf("%d", f.seek))
+	}
+	if f.duration > 0 {
+		f.Arg("-t", fmt.Sprintf("%d", f.duration))
+	}
+
 	// input
 	if f.input != nil {
 		f.Arg("-i", "-")
@@ -167,20 +207,32 @@ func (f *FFmpeg) Run() error {
 	if f.audioCodec != "" {
 		f.Arg("-acodec", f.audioCodec)
 	}
-	if f.seek >= 0 {
-		f.Arg("-ss", fmt.Sprintf("%d", f.seek))
-	}
-	if f.vframes >= 0 {
-		f.Arg("-vframes", fmt.Sprintf("%d", f.vframes))
-	}
-	if f.duration > 0 {
-		f.Arg("-t", fmt.Sprintf("%d", f.duration))
+	if f.vframes != nil {
+		f.Arg("-vframes", fmt.Sprintf("%d", *(f.vframes)))
 	}
 	if f.rate > 0 {
 		f.Arg("-r", fmt.Sprintf("%d", f.rate))
 	}
 	if f.loop > 0 {
 		f.Arg("-loop", fmt.Sprintf("%d", f.loop))
+	}
+
+	// webp
+	if f.lossless {
+		f.Arg("-lossless", "1")
+	}
+	if f.compressionLevel != nil {
+		f.Arg("-compression_level", fmt.Sprintf("%d", *f.compressionLevel))
+	}
+	if f.qscale != nil {
+		f.Arg("-qscale", fmt.Sprintf("%d", *f.qscale))
+	}
+
+	if f.filterComplex != "" {
+		f.Arg("-filter_complex", f.filterComplex)
+	}
+	if f.mapping != "" {
+		f.Arg("-map", f.mapping)
 	}
 	if f.removeMetadata {
 		f.Arg("-map_metadata", "-1")

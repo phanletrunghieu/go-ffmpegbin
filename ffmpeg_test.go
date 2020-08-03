@@ -21,7 +21,7 @@ func TestEncodeVideoFile(t *testing.T) {
 }
 
 func TestEncodeVideoBuffer(t *testing.T) {
-	fout, err := os.Create("testdata/output.mp4")
+	fout, err := os.Create("testdata/output_buffer.mp4")
 	assert.Nil(t, err)
 	defer fout.Close()
 
@@ -49,11 +49,8 @@ func TestExtractThumbnail(t *testing.T) {
 	assert.Nil(t, err)
 	defer fout.Close()
 
-	fin, err := os.Open("testdata/input.mp4")
-	assert.Nil(t, err)
-
 	ffmpeg := NewFFmpeg()
-	err = ffmpeg.Input(fin).
+	err = ffmpeg.InputFile("testdata/input.mp4").
 		Output(fout).
 		Seek(1).
 		Format("singlejpeg").
@@ -67,19 +64,52 @@ func TestExtractGIFThumbnail(t *testing.T) {
 	assert.Nil(t, err)
 	defer fout.Close()
 
-	fin, err := os.Open("testdata/input.mp4")
-	assert.Nil(t, err)
-	defer fin.Close()
-
 	ffmpeg := NewFFmpeg()
-	err = ffmpeg.Input(fin).
+	err = ffmpeg.InputFile("testdata/input.mp4").
 		Output(fout).
 		Seek(0).
 		Duration(2).
-		VFrames(-1).
 		Rate(10).
 		Loop(0).
 		Format("gif").
+		Run()
+	assert.Nil(t, err)
+}
+
+func TestExtractGIFThumbnailWithScale(t *testing.T) {
+	fout, err := os.Create("testdata/thumbnail-scale.gif")
+	assert.Nil(t, err)
+	defer fout.Close()
+
+	ffmpeg := NewFFmpeg()
+	err = ffmpeg.InputFile("testdata/input.mp4").
+		Output(fout).
+		Seek(0).
+		Duration(2).
+		Rate(10).
+		Loop(0).
+		FilterComplex("scale=800:-1").
+		Format("gif").
+		Run()
+	assert.Nil(t, err)
+}
+
+func TestExtractTiktokWebpAnimated(t *testing.T) {
+	fout, err := os.Create("testdata/thumbnail.webp")
+	assert.Nil(t, err)
+	defer fout.Close()
+
+	ffmpeg := NewFFmpeg()
+	err = ffmpeg.InputFile("testdata/input.mp4").
+		Output(fout).
+		Seek(2).
+		Duration(2).
+		Rate(30).
+		CompressionLevel(4).
+		QScale(70).
+		FilterComplex("[0:v]scale=800:-1[vid];[0:v]scale=800:-1,reverse,fifo[r];[vid][r]concat,setpts=0.5*PTS [out]").
+		Map("[out]").
+		Format("webp").
 		Run()
 	assert.Nil(t, err)
 }
