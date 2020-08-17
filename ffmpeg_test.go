@@ -113,3 +113,20 @@ func TestExtractTiktokWebpAnimated(t *testing.T) {
 		Run()
 	assert.Nil(t, err)
 }
+
+func TestAddWatermarkToVideo(t *testing.T) {
+	fout, err := os.Create("testdata/watermark.mp4")
+	assert.Nil(t, err)
+	defer fout.Close()
+
+	ffmpeg := NewFFmpeg()
+	err = ffmpeg.
+		InputFile("testdata/input.mp4").
+		InputFile("testdata/input.mp4").
+		Output(fout).
+		FilterComplex("[1:v]scale=77:-1 [ovr], [0:v][ovr] overlay=main_w-overlay_w*1.2:main_h-overlay_h*1.2").
+		AudioCodec("copy").
+		Format("mp4").
+		Run()
+	assert.Nil(t, err)
+}

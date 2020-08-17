@@ -11,8 +11,8 @@ import (
 type FFmpeg struct {
 	*binwrapper.BinWrapper
 
-	inputFile string
-	input     io.Reader
+	inputFiles []string
+	input      io.Reader
 
 	outputFile string
 	output     io.Writer
@@ -55,12 +55,12 @@ func NewFFmpeg() *FFmpeg {
 
 func (f *FFmpeg) InputFile(file string) *FFmpeg {
 	f.input = nil
-	f.inputFile = file
+	f.inputFiles = append(f.inputFiles, file)
 	return f
 }
 
 func (f *FFmpeg) Input(reader io.Reader) *FFmpeg {
-	f.inputFile = ""
+	f.inputFiles = []string{}
 	f.input = reader
 	return f
 }
@@ -187,8 +187,10 @@ func (f *FFmpeg) Run() error {
 	if f.input != nil {
 		f.Arg("-i", "-")
 		f.StdIn(f.input)
-	} else if f.inputFile != "" {
-		f.Arg("-i", f.inputFile)
+	} else if len(f.inputFiles) > 0 {
+		for _, inputFile := range f.inputFiles {
+			f.Arg("-i", inputFile)
+		}
 	} else {
 		return errors.New("Undefined input")
 	}
