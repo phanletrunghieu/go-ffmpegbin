@@ -40,10 +40,29 @@ type FFmpeg struct {
 	mapping       string
 
 	movflags string
-	preset   string
+	preset   Preset
 
 	removeMetadata bool
 	noVideo        bool
+}
+
+type Preset string
+
+const (
+	PresetUltraFast Preset = "ultrafast"
+	PresetSuperFast Preset = "superfast"
+	PresetVeryFast  Preset = "veryfast"
+	PresetFaster    Preset = "faster"
+	PresetFast      Preset = "fast"
+	PresetMedium    Preset = "medium"
+	PresetSlow      Preset = "slow"
+	PresetSlower    Preset = "slower"
+	PresetVerySlow  Preset = "veryslow"
+	PresetPlacebo   Preset = "placebo"
+)
+
+func (p Preset) String() string {
+	return string(p)
 }
 
 func NewFFmpeg() *FFmpeg {
@@ -157,7 +176,7 @@ func (f *FFmpeg) Movflags(movflags string) *FFmpeg {
 	return f
 }
 
-func (f *FFmpeg) Preset(preset string) *FFmpeg {
+func (f *FFmpeg) Preset(preset Preset) *FFmpeg {
 	f.preset = preset
 	return f
 }
@@ -244,6 +263,9 @@ func (f *FFmpeg) Run() error {
 	}
 	if f.format != "" {
 		f.Arg("-f", f.format)
+	}
+	if f.preset != "" {
+		f.Arg("-preset", f.preset.String())
 	}
 
 	// output
