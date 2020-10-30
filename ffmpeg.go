@@ -44,6 +44,14 @@ type FFmpeg struct {
 
 	removeMetadata bool
 	noVideo        bool
+
+	// extra arg
+	extraParrams []ExtraParram
+}
+
+type ExtraParram struct {
+	Key    string
+	Values []string
 }
 
 type Preset string
@@ -191,6 +199,14 @@ func (f *FFmpeg) NoVideo(noVideo bool) *FFmpeg {
 	return f
 }
 
+func (f *FFmpeg) ExtraParram(key string, values ...string) *FFmpeg {
+	f.extraParrams = append(f.extraParrams, ExtraParram{
+		Key:    key,
+		Values: values,
+	})
+	return f
+}
+
 // Ex: cat VID_20191112_093257.mp4 | ffmpeg -i - -ss 10 -t 6 -vcodec libx264 -acodec aac -b:a 10000 -b:v 10000 -movflags frag_keyframe+empty_moov+faststart -f mp4 pipe: > bbbbb.mp4
 func (f *FFmpeg) Run() error {
 	defer f.BinWrapper.Reset()
@@ -266,6 +282,10 @@ func (f *FFmpeg) Run() error {
 	}
 	if f.preset != "" {
 		f.Arg("-preset", f.preset.String())
+	}
+
+	for _, extraParram := range f.extraParrams {
+		f.Arg(extraParram.Key, extraParram.Values...)
 	}
 
 	// output
